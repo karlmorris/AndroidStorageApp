@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Get preferences for this component
+        // Get preferences for _this_ component
         preferences = getPreferences(MODE_PRIVATE)
 
         // Create file reference for app-specific file
@@ -73,18 +73,18 @@ class MainActivity : AppCompatActivity() {
             editor.putBoolean(AUTO_SAVE_KEY, autoSave)
             editor.apply()
         }
+    }
 
-        // Save the file after every keystroke (obviously horrible)
-        // if AutoSave is enabled
-        textBox.addTextChangedListener {
-            if (autoSave) {
-                try {
-                    val outputStream = FileOutputStream(file)
-                    outputStream.write(it.toString().toByteArray())
-                    outputStream.close()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+    override fun onStop() {
+        super.onStop()
+        // Save whenever activity goes to the background
+        if (autoSave) {
+            try {
+                val outputStream = FileOutputStream(file)
+                outputStream.write(textBox.text.toString().toByteArray())
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
 
         // Delete file if auto save is turned off
+        // onDestroy() does not fire onBackPressed in later APIs
         if (!autoSave)
             file.delete()
     }
